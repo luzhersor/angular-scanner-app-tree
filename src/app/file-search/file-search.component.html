@@ -1,0 +1,104 @@
+<!--  file-search.component.ts -->
+
+<div class="container-md">
+
+  <div>
+    <mat-form-field appearance="fill">
+      <mat-label for="dir">Directory:</mat-label>
+      <input matInput id="dir" [(ngModel)]="searchData.dir" />
+    </mat-form-field>
+  </div>
+
+  <div>
+    <mat-form-field appearance="fill">
+      <mat-label for="filter">Filter:</mat-label>
+      <input matInput id="filter" [(ngModel)]="searchData.filter" />
+    </mat-form-field>
+  </div>
+
+  <div>
+    <mat-form-field appearance="fill">
+      <mat-label for="ext">Extension Opcional:</mat-label>
+      <input matInput id="ext" [(ngModel)]="searchData.ext" />
+    </mat-form-field>
+  </div>
+  <!-- <label for="ext">Extension:</label>
+  <input id="ext" [(ngModel)]="searchData.ext" /> -->
+
+  <button mat-fab extended color="primary" (click)="searchFiles()">Buscar archivos</button>
+
+  <mat-progress-spinner *ngIf="loading" mode="indeterminate"></mat-progress-spinner>
+
+  <div class="mt-5" *ngIf="noResults">
+    <strong>No hay coincidencia, intenta en otra carpeta</strong>
+  </div>
+
+  <div>
+    <h3>Historial de búsqueda</h3>
+    <ul>
+      <li *ngFor="let search of getFullHistory()">
+        {{search}}
+      </li>
+    </ul>
+  </div>
+
+  <div *ngIf="searchResults.length > 0" class="result-container">
+    <h3 class="mt-5">Resultados</h3>
+    <p>Archivos totales: {{totalFiles}}, Ocurrencias totales: {{totalOccurrences}}</p>
+
+    <mat-form-field class="example-chip-list">
+      <mat-label>Extensiones existentes</mat-label>
+      <mat-chip-grid #chipGrid aria-label="Enter exts">
+
+          <mat-chip-row
+          *ngFor="let ext of extensionChips; let i = index"
+            (removed)="remove(ext)"
+            [editable]="true"
+            (edited)="edit(ext, $event)"
+            [aria-description]="'press enter to edit ' + ext">
+            {{ext}}
+            <button matChipRemove [attr.aria-label]="'remove ' + ext">
+              <mat-icon>cancel</mat-icon>
+            </button>
+          </mat-chip-row>
+
+        <input placeholder="New fruit..."
+               [matChipInputFor]="chipGrid"
+               [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
+               [matChipInputAddOnBlur]="addOnBlur"
+               (matChipInputTokenEnd)="add($event)"/>
+      </mat-chip-grid>
+    </mat-form-field>
+
+
+      <!-- Lista de Resultados -->
+      <ul>
+        <mat-list-item *ngFor="let result of searchResults;  let i = index" class="list-group-item">
+          {{i + 1}}. <a [href]="getFileUrl(result.file)" target="_blank">{{ result.file }}</a>, LINEA {{result.line}},
+          COLUMNA: {{result.column}}
+
+          <div [innerHTML]="result.highlightedRow"></div>
+          <p>(Ocurrencias en el archivo: {{result.occurrencesInFile}}) <br></p>
+
+          <button mat-raised-button color="primary" (click)="searchRecursively(result)">Buscar Recursivamente</button>
+          <ul>
+            <mat-list-item *ngFor="let result of searchResults; let i = index" class="list-group-item"></mat-list-item>
+          </ul>
+
+            <!-- Mostrar el árbol de resultados -->
+    <div *ngIf="result.tree && result.tree.length > 0">
+      <p>Árbol:</p>
+      <ul>
+        <li *ngFor="let path of result.tree">{{ path }}</li><br>
+      </ul>
+    </div>
+
+          <!-- <div *ngFor="let search of result.result">
+            <p>{{search | json}}</p>
+          </div> -->
+
+        </mat-list-item>
+      </ul>
+
+  </div>
+</div>
